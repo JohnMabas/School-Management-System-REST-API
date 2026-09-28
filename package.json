@@ -1,0 +1,32 @@
+{
+  "name": "school-management-system-rest-api",
+  "version": "1.0.0",
+  "description": "A secure School Management System REST API with JWT authentication and role-based authorization, built with Node.js and Express.js",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [
+    "school",
+    "management",
+    "authentication",
+    "authorization",
+    "jwt",
+    "express",
+    "rest-api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}

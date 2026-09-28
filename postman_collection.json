@@ -1,0 +1,1339 @@
+{
+  "info": {
+    "name": "School Management System API",
+    "_postman_id": "b8a3f0c2-6d1e-4f1b-9c8b-schoolmgmt-api",
+    "description": "Full test suite for the School Management System REST API.\n\nRun order matters: log in as admin, teacher and student first, then the resource folders.\n\nCollection variables: baseUrl, adminToken, teacherToken, studentToken, studentId, classId, subjectId, teacherId, resultId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "teacherToken",
+      "value": ""
+    },
+    {
+      "key": "studentToken",
+      "value": ""
+    },
+    {
+      "key": "studentId",
+      "value": "1"
+    },
+    {
+      "key": "classId",
+      "value": "1"
+    },
+    {
+      "key": "subjectId",
+      "value": "1"
+    },
+    {
+      "key": "teacherId",
+      "value": "1"
+    },
+    {
+      "key": "resultId",
+      "value": "1"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "API health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zainab Bello\",\n  \"email\": \"zainab.bello@school.test\",\n  \"password\": \"Str0ng!pass\",\n  \"role\": \"student\",\n  \"phone\": \"+2348030000001\",\n  \"classId\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Creates a login and the matching student record. 409/400 if the email exists."
+          }
+        },
+        {
+          "name": "Register teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kunle Ade\",\n  \"email\": \"kunle.ade@school.test\",\n  \"password\": \"Str0ng!pass\",\n  \"role\": \"teacher\",\n  \"phone\": \"+2348030000002\",\n  \"subjectId\": 3\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Register - validation error (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\",\n  \"email\": \"not-an-email\",\n  \"password\": \"weak\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Expects 400 with an errors[] array: short name, bad email, weak password, admin not self-assignable."
+          }
+        },
+        {
+          "name": "Login as admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@school.test\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Seeded admin: admin@school.test / Admin@123"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"adminToken\", pm.response.json().data.token);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 - admin logged in', () => pm.response.to.have.status(200));",
+                  "pm.test('token returned', () => pm.expect(pm.response.json().data.token).to.be.a('string'));",
+                  "pm.test('password never returned', () => pm.expect(pm.response.text()).to.not.include('password'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"teacher@school.test\",\n  \"password\": \"Teacher@123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"teacherToken\", pm.response.json().data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@school.test\",\n  \"password\": \"Student@123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"studentToken\", pm.response.json().data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - wrong password (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@school.test\",\n  \"password\": \"WrongPassword@1\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "My profile (any role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Create student (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tunde Akin\",\n  \"email\": \"tunde.akin@school.test\",\n  \"phone\": \"+2348040000001\",\n  \"classId\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/students"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"studentId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create student - forbidden for teacher (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nope Nope\",\n  \"email\": \"nope@school.test\",\n  \"classId\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "List students (admin/teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students?page=1&limit=10&search=&classId="
+          }
+        },
+        {
+          "name": "List students - forbidden for student (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Get student (admin/teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/{{studentId}}"
+          }
+        },
+        {
+          "name": "Get own student profile (student)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/1",
+            "description": "Students may only read their own record."
+          }
+        },
+        {
+          "name": "Get another student - forbidden for student (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/2"
+          }
+        },
+        {
+          "name": "Get student - not found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/9999"
+          }
+        },
+        {
+          "name": "Get student - invalid id (400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/abc"
+          }
+        },
+        {
+          "name": "Update student (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+2348049999999\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students/{{studentId}}"
+          }
+        },
+        {
+          "name": "Update student - forbidden for student (403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hacked\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students/{{studentId}}"
+          }
+        },
+        {
+          "name": "Update student - validation error (400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\",\n  \"classId\": 9999,\n  \"role\": \"admin\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students/{{studentId}}"
+          }
+        },
+        {
+          "name": "Delete student (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/{{studentId}}"
+          }
+        },
+        {
+          "name": "Delete student - forbidden for teacher (403)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students/2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "Create teacher (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grace Nwosu\",\n  \"email\": \"grace.nwosu2@school.test\",\n  \"phone\": \"+2348050000001\",\n  \"subjectId\": 2\n}"
+            },
+            "url": "{{baseUrl}}/api/teachers"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"teacherId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List teachers (admin/teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teachers?page=1&limit=10"
+          }
+        },
+        {
+          "name": "List teachers - forbidden for student (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teachers"
+          }
+        },
+        {
+          "name": "Get teacher (admin/teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teachers/{{teacherId}}"
+          }
+        },
+        {
+          "name": "Get teacher - not found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teachers/9999"
+          }
+        },
+        {
+          "name": "Update teacher (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": 5\n}"
+            },
+            "url": "{{baseUrl}}/api/teachers/{{teacherId}}"
+          }
+        },
+        {
+          "name": "Update teacher - forbidden for teacher (403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": 4\n}"
+            },
+            "url": "{{baseUrl}}/api/teachers/1"
+          }
+        },
+        {
+          "name": "Delete teacher (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/teachers/{{teacherId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Create class (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grade 9 - General\",\n  \"level\": 9\n}"
+            },
+            "url": "{{baseUrl}}/api/classes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"classId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create class - forbidden for teacher (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grade 8\",\n  \"level\": 8\n}"
+            },
+            "url": "{{baseUrl}}/api/classes"
+          }
+        },
+        {
+          "name": "Create class - validation error (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grade 10 - Science\",\n  \"level\": 99\n}"
+            },
+            "url": "{{baseUrl}}/api/classes"
+          }
+        },
+        {
+          "name": "List classes (any role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/classes?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get class (any role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/classes/1"
+          }
+        },
+        {
+          "name": "Get class - not found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/classes/9999"
+          }
+        },
+        {
+          "name": "Update class (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grade 9 - Science\"\n}"
+            },
+            "url": "{{baseUrl}}/api/classes/{{classId}}"
+          }
+        },
+        {
+          "name": "Delete class with students - conflict (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/classes/1"
+          }
+        },
+        {
+          "name": "Delete class (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/classes/{{classId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "item": [
+        {
+          "name": "Create subject (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Geography\",\n  \"code\": \"geo\",\n  \"description\": \"Land, climate and people.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/subjects",
+            "description": "Codes are normalised to uppercase."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"subjectId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create subject - forbidden for student (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"History\",\n  \"code\": \"HIS\"\n}"
+            },
+            "url": "{{baseUrl}}/api/subjects"
+          }
+        },
+        {
+          "name": "List subjects (any role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subjects?page=1&limit=10&search="
+          }
+        },
+        {
+          "name": "Get subject (any role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subjects/1"
+          }
+        },
+        {
+          "name": "Get subject - not found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subjects/9999"
+          }
+        },
+        {
+          "name": "Update subject (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/subjects/{{subjectId}}"
+          }
+        },
+        {
+          "name": "Delete subject with results - conflict (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subjects/1"
+          }
+        },
+        {
+          "name": "Delete subject (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subjects/{{subjectId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Results",
+      "item": [
+        {
+          "name": "Create result (admin/teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"subjectId\": 3,\n  \"score\": 92,\n  \"term\": 2,\n  \"session\": \"2025/2026\"\n}"
+            },
+            "url": "{{baseUrl}}/api/results",
+            "description": "grade is derived from the score, never accepted from the client."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"resultId\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create result - forbidden for student (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"subjectId\": 3,\n  \"score\": 50,\n  \"term\": 3,\n  \"session\": \"2025/2026\"\n}"
+            },
+            "url": "{{baseUrl}}/api/results"
+          }
+        },
+        {
+          "name": "Create result - validation error (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"subjectId\": 3,\n  \"score\": 140,\n  \"term\": 9,\n  \"session\": \"2025-2026\"\n}"
+            },
+            "url": "{{baseUrl}}/api/results"
+          }
+        },
+        {
+          "name": "List results (admin/teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results?page=1&limit=10&studentId=1&subjectId=1&term=1&session=2025/2026"
+          }
+        },
+        {
+          "name": "List own results (student)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results",
+            "description": "The studentId filter is ignored for students: they only ever see their own results."
+          }
+        },
+        {
+          "name": "Get result (admin/teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results/{{resultId}}"
+          }
+        },
+        {
+          "name": "Get result - forbidden for other student (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results/3"
+          }
+        },
+        {
+          "name": "Get result - not found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results/9999"
+          }
+        },
+        {
+          "name": "Update result (admin/teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 55\n}"
+            },
+            "url": "{{baseUrl}}/api/results/{{resultId}}"
+          }
+        },
+        {
+          "name": "Delete result - forbidden for teacher (403)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacherToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results/{{resultId}}"
+          }
+        },
+        {
+          "name": "Delete result (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/results/{{resultId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security & error handling",
+      "item": [
+        {
+          "name": "No token - unauthorized (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Invalid token - unauthorized (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer not.a.valid.token",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Unknown route - not found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/does-not-exist"
+          }
+        },
+        {
+          "name": "Malformed JSON body (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Sends broken JSON to prove body-parser errors are handled.",
+            "body": {
+              "mode": "raw",
+              "raw": "{ this is not json"
+            }
+          }
+        },
+        {
+          "name": "Rate limit - repeat until 429",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "Content-Type": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@school.test\",\n  \"password\": \"wrong\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Register and login allow 20 attempts per 15 minutes per IP. Send this request 21 times to receive 429 Too Many Requests."
+          }
+        }
+      ]
+    }
+  ]
+}
